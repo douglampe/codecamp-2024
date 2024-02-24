@@ -29,7 +29,7 @@ Parameters:
     Default: Title Goes Here
   PipelineRole:
     Type: String
-    Default: CodeCamp2024PipelineRole
+    Default: StreetlightPipelineRole
   ForceUpdate:
     Type: String
     Default: 'No'
@@ -82,45 +82,6 @@ Resources:
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
-              - Effect: Allow
-                Action:
-                  - 'logs:CreateLogGroup'
-                  - 'logs:CreateLogStream'
-                  - 'logs:PutLogEvents'
-                Resource: 'arn:aws:logs:*:*:*'
-
-  AdminLambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub '${Identifier}${Environment}AdminLambdaRole'
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Policies:
-        - PolicyName: !Sub '${Identifier}${Environment}AdminLambdaPolicy'
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:GetItem"
-                  - "dynamodb:PutItem"
-                  - "dynamodb:BatchGetItem"
-                  - "dynamodb:Query"
-                  - "dynamodb:Scan"
-                Resource: !GetAtt PostTable.Arn
-              - Effect: Allow
-                Action:
-                  - "s3:*"
-                Resource:
-                  - !Sub '${ContentBucket.Arn}'
-                  - !Sub '${ContentBucket.Arn}/*'
               - Effect: Allow
                 Action:
                   - 'logs:CreateLogGroup'
