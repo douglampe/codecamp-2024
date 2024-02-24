@@ -90,19 +90,5 @@ Resources:
                 Resource: 'arn:aws:logs:*:*:*'
 
 Outputs:
-  Region:
-    Value: !Ref AWS::Region
-  UserPoolId:
-    Value: !Ref AdminUserPool
-  AuthUrl:
-    Value: !Sub 'https://${IdentifierLower}-${Environment}.auth.${AWS::Region}.amazoncognito.com'
-  ClientId:
-    Value: !Ref AdminUserPoolClient
-  AdminUrl:
-    Value: !Sub 'https://${AdminContentDistribution.DomainName}'
-  AdminUrl:
-    Value: !Sub 'https://${AdminApi}.execute-api.${AWS::Region}.amazonaws.com/Prod'
   RendererUrl:
     Value: !Sub 'https://${RenderApi}.execute-api.${AWS::Region}.amazonaws.com/Prod'
-  ContentUrl:
-    Value: !Sub 'https://${ContentDistribution.DomainName}'
