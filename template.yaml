@@ -1,0 +1,147 @@
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless Application for hosting Handleblog
+
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: codecamp-2024
+    Description: Code Camp 2024 Demo
+    Author: streetlight-tech
+    SpdxLicenseId: MIT-0
+    LicenseUrl: LICENSE.md
+    ReadmeUrl: README.md
+    Labels: ['tests']
+    HomePageUrl: https://github.com/douglampe/codecamp-2024/
+    SemanticVersion: 0.0.5
+    SourceCodeUrl: https://github.com/douglampe/codecamp-2024/
+
+Parameters:
+  Identifier:
+    Type: String
+    Default: CodeCamp2024
+  IdentifierLower:
+    Type: String
+    Default: codecamp-2024
+  Environment:
+    Type: String
+    Default: prod
+  Title:
+    Type: String
+    Default: Title Goes Here
+  PipelineRole:
+    Type: String
+    Default: CodeCamp2024PipelineRole
+  ForceUpdate:
+    Type: String
+    Default: 'No'
+
+Resources:
+  RenderApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub '${Identifier}RencerApi'
+      Description: !Sub '${Identifier} Render API'
+      Cors:
+        AllowMethods: "'*'"
+        AllowOrigin: "'*'"
+      StageName: Prod
+
+  RenderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${IdentifierLower}-render-${Environment}'
+      Description: !Sub '${Identifier} Render'
+      Runtime: nodejs20.x
+      Handler: dist/src/handlers/RenderHandler.handleEvent
+      Role: !GetAtt RenderLambdaRole.Arn
+      Environment:
+        Variables:
+          TITLE: !Ref Title
+      Events:
+        Root:
+          Type: Api
+          Properties:
+            Path: '/'
+            Method: get
+            RestApiId: !Ref RenderApi
+
+  RenderLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${Identifier}${Environment}RenderLambdaRole'
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: !Sub '${Identifier}${Environment}RenderLambdaPolicy'
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: 'arn:aws:logs:*:*:*'
+
+  AdminLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${Identifier}${Environment}AdminLambdaRole'
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: !Sub '${Identifier}${Environment}AdminLambdaPolicy'
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:GetItem"
+                  - "dynamodb:PutItem"
+                  - "dynamodb:BatchGetItem"
+                  - "dynamodb:Query"
+                  - "dynamodb:Scan"
+                Resource: !GetAtt PostTable.Arn
+              - Effect: Allow
+                Action:
+                  - "s3:*"
+                Resource:
+                  - !Sub '${ContentBucket.Arn}'
+                  - !Sub '${ContentBucket.Arn}/*'
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: 'arn:aws:logs:*:*:*'
+
+Outputs:
+  Region:
+    Value: !Ref AWS::Region
+  UserPoolId:
+    Value: !Ref AdminUserPool
+  AuthUrl:
+    Value: !Sub 'https://${IdentifierLower}-${Environment}.auth.${AWS::Region}.amazoncognito.com'
+  ClientId:
+    Value: !Ref AdminUserPoolClient
+  AdminUrl:
+    Value: !Sub 'https://${AdminContentDistribution.DomainName}'
+  AdminUrl:
+    Value: !Sub 'https://${AdminApi}.execute-api.${AWS::Region}.amazonaws.com/Prod'
+  RendererUrl:
+    Value: !Sub 'https://${RenderApi}.execute-api.${AWS::Region}.amazonaws.com/Prod'
+  ContentUrl:
+    Value: !Sub 'https://${ContentDistribution.DomainName}'
