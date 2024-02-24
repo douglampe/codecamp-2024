@@ -1,4 +1,4 @@
-function handleEvent(event) {
+exports.handleEvent = function(event) {
   return {
     body: `<html><head><title>${process.env.TITLE}</title></head><body><h1>${process.env.TITLE}</h1></body></html>`,
     statusCode: 200,

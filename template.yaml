@@ -51,7 +51,7 @@ Resources:
       FunctionName: !Sub '${IdentifierLower}-render-${Environment}'
       Description: !Sub '${Identifier} Render'
       Runtime: nodejs20.x
-      Handler: demo.handleEvent
+      Handler: index.handleEvent
       Role: !GetAtt RenderLambdaRole.Arn
       Environment:
         Variables:
